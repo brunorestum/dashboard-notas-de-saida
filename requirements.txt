@@ -3,3 +3,8 @@ pandas
 SQLAlchemy
 fdb
 geopandas
+shapely
+fiona
+pyproj
+rtree
+plotly
