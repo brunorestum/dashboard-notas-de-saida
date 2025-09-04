@@ -6,7 +6,7 @@ import plotly.express as px
 # Configuração da página
 # =========================================
 st.set_page_config(page_title="Notas de Saída Fora Scanc", layout="wide")
-st.title("📊 Notas de Saída Fora Scanc ")
+st.title("📊 Dashboard Interativo - ICMS a Repassar")
 st.markdown("Filtros: escolha um contribuinte e/ou período para analisar os dados.")
 
 # =========================================
@@ -59,20 +59,35 @@ col2.metric("📦 Quantidade Total repassada indevidamente na Saída", f"{total_
 st.markdown("---")
 
 # =========================================
-# Gráfico de quantidade por produto (menor, em cima)
+# Gráficos de Produto lado a lado
 # =========================================
-st.subheader("📦 Quantidade repassada indevidamente por Produto")
-if not df_filtered.empty:
-    fig_pizza = px.pie(
-        df_filtered, values="qtdb", names="produto_classificado",
-        title="Proporção da Quantidade por Produto"
-    )
-    st.plotly_chart(fig_pizza, use_container_width=True)
-else:
-    st.warning("⚠️ Sem dados para exibir neste gráfico.")
+col1, col2 = st.columns(2)
+
+with col1:
+    st.subheader("📦 Quantidade repassada indevidamente por Produto")
+    if not df_filtered.empty:
+        fig_qtd = px.pie(
+            df_filtered, values="qtdb", names="produto_classificado",
+            title="Proporção da Quantidade por Produto"
+        )
+        st.plotly_chart(fig_qtd, use_container_width=True)
+    else:
+        st.warning("⚠️ Sem dados para exibir neste gráfico.")
+
+with col2:
+    st.subheader("💰 ICMS repassado indevidamente por Produto")
+    df_prod = df_filtered.groupby("produto_classificado", as_index=False)["vlricmsrep"].sum()
+    if not df_prod.empty:
+        fig_icms = px.bar(
+            df_prod, x="produto_classificado", y="vlricmsrep", color="produto_classificado",
+            text_auto=".2s", title="ICMS a Repassar por Produto"
+        )
+        st.plotly_chart(fig_icms, use_container_width=True)
+    else:
+        st.warning("⚠️ Sem dados para exibir neste gráfico.")
 
 # =========================================
-# Gráfico de maiores contribuições por contribuinte (maior, embaixo)
+# Gráfico de maiores contribuições por contribuinte (embaixo)
 # =========================================
 st.subheader("💸 Maiores Contribuições por Contribuinte (ICMS)")
 df_razsocial = df_filtered.groupby("razsocial", as_index=False)["vlricmsrep"].sum()
@@ -90,40 +105,35 @@ else:
     st.warning("⚠️ Sem dados para exibir neste gráfico.")
 
 # =========================================
-# ICMS por produto (barra) - gráfico principal
-# =========================================
-st.subheader("💰 ICMS repassado indevidamente por Produto")
-df_prod = df_filtered.groupby("produto_classificado", as_index=False)["vlricmsrep"].sum()
-if not df_prod.empty:
-    fig_prod = px.bar(
-        df_prod, x="produto_classificado", y="vlricmsrep", color="produto_classificado",
-        text_auto=".2s", title="ICMS a Repassar por Produto"
-    )
-    st.plotly_chart(fig_prod, use_container_width=True)
-else:
-    st.warning("⚠️ Sem dados para exibir neste gráfico.")
-
-# =========================================
 # Evolução mensal com eixo mesano como texto
 # =========================================
 st.subheader("📅 Evolução Mensal do ICMS repassado indevidamente")
 df_mes = df_filtered.groupby("mesano", as_index=False)["vlricmsrep"].sum()
 if not df_mes.empty:
-    # Transformar mesano em texto
+    # Transformar mesano em string para garantir que apareça exatamente
     df_mes["mesano_str"] = df_mes["mesano"].astype(str)
+    
+    # Ordenar os valores para manter a sequência correta
+    df_mes = df_mes.sort_values("mesano")
     
     fig_mes = px.line(
         df_mes,
-        x="mesano_str",  # eixo como texto
+        x="mesano_str",
         y="vlricmsrep",
         markers=True,
         title="ICMS a Repassar por Mês",
-        hover_data={"mesano_str": True, "vlricmsrep": ":,.2f"},  # ICMS formatado no tooltip
-        labels={"mesano_str": "Mês/Ano", "vlricmsrep": "ICMS a Repassar (R$)"}
+        hover_data={"mesano_str": True, "vlricmsrep": ":,.2f"},
+        labels={"mesano_str": "Mês/Ano", "vlricmsrep": "ICMS a Repassar (R$)"},
+        category_orders={"mesano_str": df_mes["mesano_str"].tolist()}  # garante a ordem e evita abreviações
     )
+    
+    # Forçar o eixo x a mostrar os valores completos sem abreviações
+    fig_mes.update_xaxes(tickmode="array", tickvals=df_mes["mesano_str"], ticktext=df_mes["mesano_str"])
+    
     st.plotly_chart(fig_mes, use_container_width=True)
 else:
     st.warning("⚠️ Sem dados para exibir na evolução mensal.")
+
 
 st.markdown("---")
 st.info("💡 Para compartilhar: rode `streamlit run app.py` ou publique no [Streamlit Cloud](https://streamlit.io/cloud).")
