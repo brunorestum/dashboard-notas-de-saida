@@ -6,7 +6,7 @@ import plotly.express as px
 # Configuração da página
 # =========================================
 st.set_page_config(page_title="Notas de Saída Fora Scanc", layout="wide")
-st.title("📊 Dashboard Interativo - ICMS a Repassar")
+st.title("📊 Notas de Saída Fora Scanc")
 st.markdown("Filtros: escolha um contribuinte e/ou período para analisar os dados.")
 
 # =========================================
