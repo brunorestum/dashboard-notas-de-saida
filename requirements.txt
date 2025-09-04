@@ -14,4 +14,4 @@ numpy
 reportlab
 seaborn
 matplotlib
-
+openpyxl
