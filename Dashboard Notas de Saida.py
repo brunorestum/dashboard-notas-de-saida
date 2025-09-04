@@ -8,8 +8,8 @@ Created on Thu Sep  4 10:44:11 2025
 # importar pandas
 
 import pandas as pd
-from sqlalchemy import *
-import sqlalchemy
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Float
+from sqlalchemy.sql import select
 import fdb
 import geopandas as gpd
 import plotly.express as px
