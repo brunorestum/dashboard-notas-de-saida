@@ -1,20 +1,17 @@
 import pandas as pd
 import streamlit as st
-import seaborn as sns
-import matplotlib.pyplot as plt
 import plotly.express as px
 
 # =========================================
 # Configuração da página
 # =========================================
-st.set_page_config(page_title="Dashboard ICMS", layout="wide")
+st.set_page_config(page_title="Notas de Saída Fora Scanc", layout="wide")
 st.title("📊 Dashboard Interativo - ICMS a Repassar")
 st.markdown("Filtros: escolha um contribuinte e/ou período para analisar os dados.")
 
 # =========================================
 # Ler o Excel do GitHub
 # =========================================
-# Substitua pelo link raw do seu arquivo no GitHub
 url = "https://raw.githubusercontent.com/brunorestum/dashboard-notas-de-saida/main/comparacao-saidas.xlsx"
 comparacao_df = pd.read_excel(url, engine='openpyxl')
 
@@ -56,19 +53,18 @@ total_icms = df_filtered["vlricmsrep"].sum()
 total_qtd = df_filtered["qtdb"].sum()
 
 col1, col2 = st.columns(2)
-col1.metric("💰 Total ICMS a Repassar", f"R$ {total_icms:,.2f}")
-col2.metric("📦 Quantidade Total", f"{total_qtd:,.0f}")
+col1.metric("💰 Total ICMS repassado indevidamente na Saída", f"R$ {total_icms:,.2f}")
+col2.metric("📦 Quantidade Total repassada indevidamente na Saída", f"{total_qtd:,.0f}")
 
 st.markdown("---")
 
 # =========================================
-# Gráficos
+# Gráficos principais lado a lado
 # =========================================
-
-col1, col2 = st.columns([2, 1])
+col1, col2 = st.columns([2, 2])
 
 with col1:
-    st.subheader("📦 ICMS a Repassar por Produto")
+    st.subheader("💰 ICMS repassado indevidamente por Produto")
     df_prod = df_filtered.groupby("produto_classificado", as_index=False)["vlricmsrep"].sum()
     if not df_prod.empty:
         fig_prod = px.bar(
@@ -80,37 +76,61 @@ with col1:
         st.warning("⚠️ Sem dados para exibir neste gráfico.")
 
 with col2:
-    st.subheader("🥧 Distribuição de Quantidade por Produto")
-    if not df_filtered.empty:
-        fig_pizza = px.pie(
-            df_filtered, values="qtdb", names="produto_classificado",
-            title="Proporção da Quantidade por Produto"
+    st.subheader("💸 Maiores Contribuições por Contribuinte (ICMS)")
+    df_razsocial = df_filtered.groupby("razsocial", as_index=False)["vlricmsrep"].sum()
+    df_razsocial = df_razsocial.sort_values(by="vlricmsrep", ascending=False).head(10)  # Top 10
+    if not df_razsocial.empty:
+        fig_razsocial = px.bar(
+            df_razsocial, x="razsocial", y="vlricmsrep",
+            color="vlricmsrep",
+            hover_data={
+                "razsocial": True,
+                "vlricmsrep": ":,.2f"
+            },
+            title="Top 10 Contribuintes por ICMS Repassado",
+            labels={"vlricmsrep": "ICMS a Repassar (R$)", "razsocial": "Contribuinte"}
         )
-        st.plotly_chart(fig_pizza, use_container_width=True)
+        st.plotly_chart(fig_razsocial, use_container_width=True)
     else:
         st.warning("⚠️ Sem dados para exibir neste gráfico.")
 
-# Evolução mensal
-st.subheader("📅 Evolução Mensal - ICMS a Repassar")
+# =========================================
+# Gráfico de quantidade por produto
+# =========================================
+st.subheader("📦 Quantidade repassada indevidamente por Produto")
+if not df_filtered.empty:
+    fig_pizza = px.pie(
+        df_filtered, values="qtdb", names="produto_classificado",
+        title="Proporção da Quantidade por Produto"
+    )
+    st.plotly_chart(fig_pizza, use_container_width=True)
+else:
+    st.warning("⚠️ Sem dados para exibir neste gráfico.")
+
+# =========================================
+# Evolução mensal com tooltip interativo
+# =========================================
+st.subheader("📅 Evolução Mensal do ICMS repassado indevidamente")
 df_mes = df_filtered.groupby("mesano", as_index=False)["vlricmsrep"].sum()
 if not df_mes.empty:
     fig_mes = px.line(
-        df_mes, x="mesano", y="vlricmsrep", markers=True, title="ICMS a Repassar por Mês"
+        df_mes,
+        x="mesano",
+        y="vlricmsrep",
+        markers=True,
+        title="ICMS a Repassar por Mês",
+        hover_data={
+            "mesano": True,
+            "vlricmsrep": ":,.2f"
+        },
+        labels={
+            "mesano": "Mês/Ano",
+            "vlricmsrep": "ICMS a Repassar (R$)"
+        }
     )
     st.plotly_chart(fig_mes, use_container_width=True)
 else:
     st.warning("⚠️ Sem dados para exibir na evolução mensal.")
-
-# Heatmap
-st.subheader("🔥 Correlação entre Quantidade e ICMS a Repassar")
-corr = df_filtered[["qtdb", "vlricmsrep"]].corr()
-
-if corr.isna().all().all():
-    st.warning("⚠️ Não há dados suficientes para calcular a correlação neste filtro.")
-else:
-    fig, ax = plt.subplots()
-    sns.heatmap(corr, annot=True, cmap="YlOrRd", ax=ax, vmin=-1, vmax=1)
-    st.pyplot(fig)
 
 st.markdown("---")
 st.info("💡 Para compartilhar: rode `streamlit run app.py` ou publique no [Streamlit Cloud](https://streamlit.io/cloud).")
