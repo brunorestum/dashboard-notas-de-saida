@@ -15,7 +15,7 @@ st.markdown("Filtros: escolha um contribuinte e/ou período para analisar os dad
 # Ler o Excel do GitHub
 # =========================================
 # Substitua pelo link raw do seu arquivo no GitHub
-url = "https://github.com/brunorestum/dashboard-notas-de-saida/blob/main/comparacao-saidas.xlsx"
+url = "https://raw.githubusercontent.com/brunorestum/dashboard-notas-de-saida/main/comparacao-saidas.xlsx"
 comparacao_df = pd.read_excel(url, engine='openpyxl')
 
 # =========================================
