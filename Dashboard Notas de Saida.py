@@ -5,8 +5,8 @@ import plotly.express as px
 # =========================================
 # Configuração da página
 # =========================================
-st.set_page_config(page_title="Notas de Saída Fora Scanc", layout="wide")
-st.title("📊 Notas de Saída Fora Scanc")
+st.set_page_config(page_title="Notas de Saída Indevidas Scanc", layout="wide")
+st.title("📊 Notas de Saída Indevidas Scanc")
 st.markdown("Filtros: escolha um contribuinte e/ou período para analisar os dados.")
 
 # =========================================
