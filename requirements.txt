@@ -9,3 +9,9 @@ pyproj
 rtree
 plotly
 unidecode
+nltk
+numpy
+reportlab
+seaborn
+matplotlib
+
