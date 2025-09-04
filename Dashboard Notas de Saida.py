@@ -50,7 +50,7 @@ if "anotodo" not in meses:
 # KPIs
 # =========================================
 total_icms = df_filtered["vlricmsrep"].sum()
-total_qtd = df_filtered["qtdb"].sum()
+total_qtd = df_filtered["qtd"].sum()
 
 col1, col2 = st.columns(2)
 col1.metric("💰 Total ICMS repassado indevidamente na Saída", f"R$ {total_icms:,.2f}")
@@ -67,7 +67,7 @@ with col1:
     st.subheader("📦 Quantidade repassada indevidamente por Produto")
     if not df_filtered.empty:
         fig_qtd = px.pie(
-            df_filtered, values="qtdb", names="produto_classificado",
+            df_filtered, values="qtd", names="produto_classificado",
             title="Proporção da Quantidade por Produto"
         )
         st.plotly_chart(fig_qtd, use_container_width=True)
@@ -134,6 +134,32 @@ if not df_mes.empty:
 else:
     st.warning("⚠️ Sem dados para exibir na evolução mensal.")
 
+# =========================================
+# Tabela detalhada das notas
+# =========================================
+st.subheader("📋 Tabela detalhada das Notas de Saída")
+
+# Selecionar e reordenar as colunas
+colunas_tabela = [
+    "cnpjh",
+    "razsocial",
+    "uf",
+    "numnf",
+    "dtemissao",
+    "cfop",
+    "qtd",
+    "vlricmsrep",
+    "produto_classificado"
+]
+
+# Verificar se todas as colunas existem
+colunas_existentes = [c for c in colunas_tabela if c in df_filtered.columns]
+
+# Mostrar a tabela
+if not df_filtered.empty and colunas_existentes:
+    st.dataframe(df_filtered[colunas_existentes].sort_values("dtemissao"), use_container_width=True)
+else:
+    st.warning("⚠️ Não há dados suficientes para exibir a tabela.")
 
 st.markdown("---")
 st.info("💡 Para compartilhar: rode `streamlit run app.py` ou publique no [Streamlit Cloud](https://streamlit.io/cloud).")
