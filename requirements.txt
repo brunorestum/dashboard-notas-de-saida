@@ -8,3 +8,4 @@ fiona
 pyproj
 rtree
 plotly
+unidecode
