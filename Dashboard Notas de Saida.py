@@ -22,7 +22,7 @@ with tab1:
 
     # --- Leitura do Excel direto do GitHub ---
     url1 = "https://raw.githubusercontent.com/brunorestum/dashboard-notas-de-saida/f77513753a72efc8a1a43e46f6a82db867f6181a/resultado_notificacao.xlsx"
-df = pd.read_excel(url1, engine="openpyxl")
+    df = pd.read_excel(url1, engine="openpyxl")
 
 
     # --- Garantir que os nomes das colunas estejam corretos ---
