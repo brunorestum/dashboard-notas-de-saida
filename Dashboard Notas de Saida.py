@@ -116,44 +116,39 @@ with tab1:
                                     color='origem', title="Origem: Quantidade e Valor Solicitado")
             st.plotly_chart(fig_origem, use_container_width=True)
 
-        # --- Economia Interativa com Notificações ---
-        st.subheader("💡 Economia Estimada por Razão Social e Período")
+       # --- Economia Total Estimada ---
+if not df_filt.empty:
+    st.subheader("💰 Economia Total Estimada com Notificações")
 
-        # Agrupar por razão social e período
-        df_economia = df_filt.groupby(['raz_social', 'periodo'], as_index=False).size()
-        df_economia.rename(columns={'size': 'num_notificacoes'}, inplace=True)
+    # Número total de notificações
+    num_notificacoes = df_filt.shape[0]
 
-        # Calcular horas e valor economizado
-        horas_por_notificacao = 8  # 1 dia = 8h
-        custo_hora = 173
-        df_economia['horas_total'] = df_economia['num_notificacoes'] * horas_por_notificacao
-        df_economia['valor_economizado'] = df_economia['horas_total'] * custo_hora
+    # Horas e valor economizado
+    horas_por_notificacao = 8  # 1 dia = 8h
+    custo_hora = 173
+    horas_total = num_notificacoes * horas_por_notificacao
+    valor_economizado = horas_total * custo_hora
 
-        # --- Gráfico de Valor Economizado ---
-        fig_economia_inter = px.bar(
-            df_economia,
-            x='raz_social',
-            y='valor_economizado',
-            color='periodo',
-            text=df_economia['valor_economizado'].apply(lambda x: f"R$ {x:,.2f}"),
-            title="Valor Economizado por Razão Social e Período",
-            labels={"valor_economizado": "Valor Economizado (R$)", "raz_social": "Razão Social", "periodo": "Período"},
-            barmode='group'
-        )
-        st.plotly_chart(fig_economia_inter, use_container_width=True)
+    # Mostrar os números
+    st.markdown(f"- Total de Notificações Processadas: **{num_notificacoes}**")
+    st.markdown(f"- Horas Totais Investidas: **{horas_total} h**")
+    st.markdown(f"- Valor Economizado com a Ação: **R$ {valor_economizado:,.2f}** 💸")
 
-        # --- Gráfico de Horas Totais ---
-        fig_horas = px.bar(
-            df_economia,
-            x='raz_social',
-            y='horas_total',
-            color='periodo',
-            text=df_economia['horas_total'].apply(lambda x: f"{x} h"),
-            title="Horas Trabalhadas Estimadas por Razão Social e Período",
-            labels={"horas_total": "Horas Trabalhadas", "raz_social": "Razão Social", "periodo": "Período"},
-            barmode='group'
-        )
-        st.plotly_chart(fig_horas, use_container_width=True)
+    # --- Gráfico animado de economia ---
+    import plotly.graph_objects as go
+    fig_economia = go.Figure(
+        data=[go.Bar(x=['Valor Economizado'], y=[valor_economizado],
+                     text=[f"R$ {valor_economizado:,.2f}"], textposition='auto',
+                     marker_color='gold')]
+    )
+
+    # Animação simples de subida da barra
+    fig_economia.update_traces(marker_line_width=2)
+    fig_economia.update_layout(title="💰 Valor Total Economizado",
+                               yaxis_title="R$",
+                               yaxis=dict(range=[0, valor_economizado*1.2]))
+    st.plotly_chart(fig_economia, use_container_width=True)
+
 
     else:
         st.warning("⚠️ Nenhum dado disponível para os filtros selecionados.")
