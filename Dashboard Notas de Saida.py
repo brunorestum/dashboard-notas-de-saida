@@ -20,9 +20,10 @@ with tab1:
     st.title("📊 Dashboard de Notificação")
     st.markdown("Use os filtros abaixo para segmentar os dados.")
 
-    # --- Leitura do Excel 1 ---
-    url1 = "https://raw.githubusercontent.com/brunorestum/dashboard-notas-de-saida/main/Resultados_Notificacao.xlsx"
-    df = pd.read_excel(url1, engine="openpyxl")
+    # --- Leitura do Excel direto do GitHub ---
+    url1 = "https://raw.githubusercontent.com/brunorestum/dashboard-notas-de-saida/97be5cda4b1417f9b8ae6be342bc41e4066db3f3/resultado_notificacao.xlsx"
+df = pd.read_excel(url1, engine="openpyxl")
+
 
     # --- Garantir que os nomes das colunas estejam corretos ---
     df.columns = [c.strip().lower() for c in df.columns]
@@ -120,7 +121,6 @@ with tab1:
             st.plotly_chart(fig6, use_container_width=True)
     else:
         st.warning("⚠️ Nenhum dado disponível para os filtros selecionados.")
-
 
 # ======================================================
 # ABA 2 - Notas de Saída Indevidas Scanc
