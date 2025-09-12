@@ -104,7 +104,7 @@ with tab1:
                                     color='origem', title="Origem: Quantidade e Valor Solicitado")
             st.plotly_chart(fig_origem, use_container_width=True)
 
-        # --- Economia Total com Ampulheta Animada ---
+        # --- Economia Total com Ampulheta Lenta ---
         num_notificacoes = df_filt.shape[0]
         horas_por_notificacao = 8
         custo_hora = 173
@@ -116,14 +116,24 @@ with tab1:
         st.markdown(f"- Horas Totais Investidas: **{horas_total} h**")
         st.markdown(f"- Valor Economizado com a Ação: **R$ {valor_economizado:,.2f}** 💸")
 
-        # --- Ampulheta HTML/CSS ---
+        # --- Ampulheta HTML/CSS lenta ---
         valor_total_str = f"R$ {valor_economizado:,.2f}"
 
-        html_code = f"""
-        <div style="position: relative; width: 150px; height: 300px; margin:auto;">
-          <div style="position:absolute; bottom:0; width: 100%; height:0; background-color: gold; animation: fill 3s infinite alternate;"></div>
-          <div style="position:absolute; top:0; width: 100%; height: 100%; border-left: 5px solid black; border-right: 5px solid black; clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);"></div>
-          <h3 style="text-align:center; margin-top:320px;">{valor_total_str}</h3>
+        html_ampulheta = f"""
+        <div style="position: relative; width: 120px; height: 250px; margin:auto;">
+          <!-- Areia dourada -->
+          <div style="
+              position:absolute; bottom:0; width: 100%; height:0%; 
+              background-color: gold; 
+              animation: fill 20s forwards;">
+          </div>
+          <!-- Contorno da ampulheta -->
+          <div style="
+              position:absolute; top:0; width: 100%; height: 100%; 
+              border-left: 4px solid black; border-right: 4px solid black; 
+              clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+          "></div>
+          <h3 style="text-align:center; margin-top:260px; font-size:16px;">{valor_total_str}</h3>
         </div>
 
         <style>
@@ -134,10 +144,11 @@ with tab1:
         </style>
         """
 
-        st.markdown(html_code, unsafe_allow_html=True)
+        st.markdown(html_ampulheta, unsafe_allow_html=True)
 
     else:
         st.warning("⚠️ Nenhum dado disponível para os filtros selecionados.")
+
 
 
 
