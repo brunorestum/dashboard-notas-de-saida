@@ -104,38 +104,37 @@ with tab1:
                                     color='origem', title="Origem: Quantidade e Valor Solicitado")
             st.plotly_chart(fig_origem, use_container_width=True)
 
-        # --- Economia Total com Contador Animado ---
+        # --- Economia Total ---
         num_notificacoes = int(df_filt.shape[0])
         horas_por_notificacao = 8
         custo_hora = 173
         horas_total = num_notificacoes * horas_por_notificacao
         valor_economizado = horas_total * custo_hora
-        valor_economizado_int = int(valor_economizado)
 
         st.subheader("💰 Economia Total Estimada com Notificações")
         st.markdown(f"- Total de Notificações Processadas: **{num_notificacoes}**")
         st.markdown(f"- Horas Totais Investidas: **{horas_total} h**")
+        st.markdown(f"- Valor Economizado Estimado: **R$ {valor_economizado:,.2f}**")
 
-        # --- Contador animado ---
-        st.markdown(f"""
-        <h3>Valor Economizado: <span id="valor" style="color:gold;">0</span></h3>
-        <script>
-        let valor = 0;
-        let final = {valor_economizado_int};
-        let el = document.getElementById('valor');
-        let interval = setInterval(() => {{
-            valor += Math.ceil(final/100);
-            if (valor >= final) {{
-                valor = final;
-                clearInterval(interval);
-            }}
-            el.innerText = "R$ " + valor.toLocaleString();
-        }}, 50);
-        </script>
-        """, unsafe_allow_html=True)
+        # --- Gauge Circular para Valor Economizado ---
+        import plotly.graph_objects as go
+        fig_gauge = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=valor_economizado,
+            number={'prefix': "R$ ", 'valueformat': ",.0f"},
+            title={'text': "Valor Economizado"},
+            gauge={'axis': {'range': [0, max(valor_economizado*1.2, 100000)]},
+                   'bar': {'color': "green"},
+                   'steps': [
+                       {'range': [0, valor_economizado*0.5], 'color': "lightgreen"},
+                       {'range': [valor_economizado*0.5, valor_economizado], 'color': "green"}]
+                  }
+        ))
+        st.plotly_chart(fig_gauge, use_container_width=True)
 
     else:
         st.warning("⚠️ Nenhum dado disponível para os filtros selecionados.")
+
 
 
 
