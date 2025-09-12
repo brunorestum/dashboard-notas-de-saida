@@ -3,65 +3,41 @@ import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 
-# ======================================================
 # Configuração da página
-# ======================================================
 st.set_page_config(page_title="Dashboard Geral", layout="wide")
 
-# ======================================================
 # Criação das abas
-# ======================================================
 tab1, tab2 = st.tabs(["📊 Dashboard de Notificação", "📈 Notas de Saída Indevidas Scanc"])
 
-# ======================================================
 # ABA 1 - Dashboard de Notificação
-# ======================================================
 with tab1:
     st.title("📊 Dashboard de Notificação")
     st.markdown("Use os filtros abaixo para segmentar os dados.")
 
-    # --- Leitura do Excel direto do GitHub ---
+    # Leitura do Excel direto do GitHub
     url1 = "https://raw.githubusercontent.com/brunorestum/dashboard-notas-de-saida/f938a619d06a0edec92587db0b5bbc501b5c7d74/Resultados%20Notifica%C3%A7%C3%A3o.xlsx"
     df = pd.read_excel(url1, engine="openpyxl")
 
-    # --- Padronizar nomes das colunas ---
-    df.columns = df.columns.str.strip().str.lower()
-    df.rename(columns={"período": "periodo"}, inplace=True)
-
-    # --- Tratamento da coluna período ---
-    if 'periodo' in df.columns:
-        df['periodo'] = df['periodo'].astype(str)
-        df_expl = df.assign(periodo=df['periodo'].str.split(';')).explode('periodo')
-        df_expl['periodo'] = df_expl['periodo'].str.strip()
+    # Verificar se a coluna 'período' existe
+    if 'período' in df.columns:
+        # Tratamento da coluna período
+        df['período'] = df['período'].astype(str)
+        df_expl = df.assign(período=df['período'].str.split(';')).explode('período')
+        df_expl['período'] = df_expl['período'].str.strip()
     else:
-        st.error("⚠️ Coluna 'período' não encontrada no arquivo.")
-        df_expl = df.copy()
+        st.warning("⚠️ Coluna 'período' não encontrada no arquivo.")
 
-    # --- Filtros ---
+    # Filtros
     st.sidebar.header("🔎 Filtros")
-    todos_cnpjs = sorted(df_expl.get('cnpj', pd.Series()).dropna().unique())
-    cnpjs = st.sidebar.multiselect(
-        "Selecione CNPJ:",
-        options=todos_cnpjs,
-        default=todos_cnpjs  # todos selecionados por padrão
-    )
+    razao_social = st.sidebar.multiselect("Selecione Razão Social:", options=sorted(df_expl['razão social'].dropna().unique()))
 
-    todos_periodos = ["anotodo"] + sorted(df_expl.get('periodo', pd.Series()).dropna().unique())
-    periodos = st.sidebar.multiselect(
-        "Selecione período(s):",
-        options=todos_periodos,
-        default=["anotodo"]  # padrão: anotodo (tudo)
-    )
-
-    # --- Aplicar filtros ---
+    # Aplicar filtros
     df_filt = df_expl.copy()
-    if cnpjs:
-        df_filt = df_filt[df_filt.get("cnpj", pd.Series()).isin(cnpjs)]
-    if "anotodo" not in periodos:
-        df_filt = df_filt[df_filt.get("periodo", pd.Series()).isin(periodos)]
+    if razao_social:
+        df_filt = df_filt[df_filt['razão social'].isin(razao_social)]
 
-    # --- KPIs ---
-    total_solicitado = df_filt.get('valor_solicitado', pd.Series()).sum()
+    # KPIs
+    total_solicitado = df_filt['valor_solicitado'].sum()
     total_registros = df_filt.shape[0]
 
     col1, col2 = st.columns(2)
@@ -70,48 +46,114 @@ with tab1:
 
     st.markdown("---")
 
-    # --- Aqui você continua com os gráficos usando df_filt ---
+    # Gráfico 1
+    st.subheader("📌 Quantidade de Registros por Situação")
+    if not df_filt.empty:
+        fig1 = px.pie(df_filt, names='situação', title="Proporção por Situação")
+        st.plotly_chart(fig1, use_container_width=True)
+    else:
+        st.warning("⚠️ Sem dados para exibir no Gráfico 1.")
 
-# ======================================================
+    # Gráfico 2
+    st.subheader("📦 Valor Solicitado por Categoria")
+    df_cat = df_filt.groupby('categoria', as_index=False)['valor_solicitado'].sum()
+    if not df_cat.empty:
+        fig2 = px.bar(
+            df_cat.sort_values('valor_solicitado', ascending=False),
+            x='categoria', y='valor_solicitado', color='categoria', text_auto=".2s",
+            title="Valor Solicitado por Categoria"
+        )
+        st.plotly_chart(fig2, use_container_width=True)
+    else:
+        st.warning("⚠️ Sem dados para exibir no Gráfico 2.")
+
+    # Gráfico 3
+    st.subheader("💸 Top 10 Razões Sociais por Valor Solicitado")
+    df_rs = df_filt.groupby('razão social', as_index=False)['valor_solicitado'].sum()
+    df_rs = df_rs.sort_values('valor_solicitado', ascending=False).head(10)
+    if not df_rs.empty:
+        fig3 = px.bar(df_rs, x='razão social', y='valor_solicitado', color='valor_solicitado',
+                      title="Top 10 – Razão Social")
+        st.plotly_chart(fig3, use_container_width=True)
+    else:
+        st.warning("⚠️ Sem dados para exibir no Gráfico 3.")
+
+    # Gráfico 4
+    st.subheader("📅 Evolução Mensal do Valor Solicitado")
+    if 'mês de repasse' in df_filt.columns:
+        df_mes = df_filt.groupby('mês de repasse', as_index=False)['valor_solicitado'].sum()
+        if not df_mes.empty:
+            df_mes = df_mes.sort_values('mês de repasse')
+            fig4 = px.line(df_mes, x='mês de repasse', y='valor_solicitado', markers=True,
+                           title="Valor Solicitado por Mês de Repasse")
+            st.plotly_chart(fig4, use_container_width=True)
+        else:
+            st.warning("⚠️ Sem dados para exibir no Gráfico 4.")
+    else:
+        st.warning("⚠️ Coluna 'mês de repasse' não encontrada.")
+
+    # Gráfico 5
+    st.subheader("💰 Progresso de Repasses (Efetuado vs Aguardando)")
+    efetuado = df_filt.loc[df_filt['situação'] == 'Repasse Efetuado', 'valor_solicitado'].sum()
+    aguardando = df_filt.loc[df_filt['situação'] == 'Aguardando repasse', 'valor_solicitado'].sum()
+    total_possivel = efetuado + aguardando
+    fig5 = go.Figure()
+    fig5.add_trace(go.Bar(x=['Total Possível'], y=[total_possivel],
+                          name='Total Possível (Efetuado + Aguardando)', marker_color='lightgray'))
+    fig5.add_trace(go.Bar(x=['Total Possível'], y=[efetuado],
+                          name='Efetuado', marker_color='green'))
+    fig5.update_layout(barmode='overlay', title="Comparativo: Efetuado vs Total Possível",
+                       yaxis_title="Valor (R$)")
+    st.plotly_chart(fig5, use_container_width=True)
+
+    # Gráfico 6
+    st.subheader("📍 Quantidade e Valor por Origem")
+    if 'origem' in df_filt.columns:
+        df_origem = df_filt.groupby('origem', as_index=False).agg(
+            quantidade=('origem', 'count'), soma_valor=('valor_solicitado', 'sum'))
+        if not df_origem.empty:
+            fig6 = px.scatter(df_origem, x='origem', y='soma_valor', size='quantidade',
+                              color='origem', title="Origem: Quantidade e Valor Solicitado")
+            st.plotly_chart(fig6, use_container_width=True)
+        else:
+            st.warning("⚠️ Sem dados para exibir no Gráfico 6.")
+    else:
+        st.warning("⚠️ Coluna 'origem' não encontrada.")
+
 # ABA 2 - Notas de Saída Indevidas Scanc
-# ======================================================
 with tab2:
     st.title("📊 Notas de Saída Indevidas Scanc")
     st.markdown("Filtros: escolha um contribuinte e/ou período para analisar os dados.")
 
-    # --- Ler o Excel do GitHub ---
+    # Ler o Excel do GitHub
     url2 = "https://raw.githubusercontent.com/brunorestum/dashboard-notas-de-saida/main/comparacao-saidas.xlsx"
     comparacao_df = pd.read_excel(url2, engine='openpyxl')
 
-    # --- Padronizar nomes das colunas ---
-    comparacao_df.columns = comparacao_df.columns.str.strip().str.lower()
-
-    # --- Filtros na sidebar ---
+    # Filtros na sidebar
     st.sidebar.header("🔎 Filtros")
-    todos_contribuintes = sorted(comparacao_df.get("razsocial", pd.Series()).dropna().unique())
     contribuintes = st.sidebar.multiselect(
         "Selecione o contribuinte (razsocial):",
-        options=todos_contribuintes,
-        default=todos_contribuintes  # todos selecionados por padrão
+        options=comparacao_df["razsocial"].dropna().unique(),
+        default=None
     )
 
-    todos_meses = ["anotodo"] + sorted(comparacao_df.get("mesano", pd.Series()).dropna().unique())
+    meses_options = ["anotodo"] + sorted(comparacao_df["mesano"].dropna().unique().tolist())
     meses = st.sidebar.multiselect(
         "Selecione o período (mesano):",
-        options=todos_meses,
-        default=["anotodo"]  # padrão: anotodo (tudo)
+        options=meses_options,
+        default=["anotodo"]
     )
 
-    # --- Aplicar filtros ---
+    # Aplicar filtros
     df_filtered = comparacao_df.copy()
     if contribuintes:
-        df_filtered = df_filtered[df_filtered.get("razsocial", pd.Series()).isin(contribuintes)]
+        df_filtered = df_filtered[df_filtered["razsocial"].isin(contribuintes)]
     if "anotodo" not in meses:
-        df_filtered = df_filtered[df_filtered.get("mesano", pd.Series()).isin(meses)]
+        df_filtered = df_filtered[df_filtered["mesano"].isin(meses)]
 
-    # --- KPIs ---
-    total_icms = df_filtered.get("vlricmsrep", pd.Series()).sum()
-    total_qtd = df_filtered.get("qtd", pd.Series()).sum()
+    # KPIs
+    total_icms = df_filtered["vlricmsrep"].sum()
+    total_qtd = df_filtered["qtd"].sum()
 
     col1, col2 = st.columns(2)
     col1.metric("💰 Total ICMS repassado indevidamente na Saída", f"R$ {total_icms:,.2f}")
@@ -119,4 +161,20 @@ with tab2:
 
     st.markdown("---")
 
-    # --- Aqui você continua com os gráficos usando df_filtered ---
+    # Gráficos de Produto lado a lado
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("📦 Quantidade repassada indevidamente por Produto")
+        if not df_filtered.empty:
+            fig_qtd = px.pie(
+                df_filtered, values="qtd", names="produto_classificado",
+                title="Proporção da Quantidade por Produto"
+            )
+            st.plotly_chart(fig_qtd, use_container_width=True)
+        else:
+            st.warning("⚠️ Sem dados para exibir neste gráfico.")
+
+    with col2:
+        st.sub
+::contentReference[oaicite:16]{index=16}
+ 
