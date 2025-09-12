@@ -64,13 +64,13 @@ with tab1:
 
     col1, col2 = st.columns(2)
     col1.metric("💰 Valor Total Solicitado", f"R$ {total_solicitado:,.2f}")
-    col2.metric("📄 Total de Registros", f"{total_registros:,}")
+    col2.metric("📄 Total de Notificações", f"{total_registros:,}")
 
     st.markdown("---")
 
     if not df_filt.empty:
-        # --- Gráficos lado a lado: Status e Valor por Situação ---
-        col1, col2 = st.columns(2)
+        # --- Gráficos lado a lado com tamanhos ajustados ---
+        col1, col2 = st.columns([1, 2])  # menor para status, maior para valor por situação
 
         with col1:
             if 'status' in df_filt.columns:
@@ -95,29 +95,18 @@ with tab1:
                         title="Top 10 – Razão Social")
         st.plotly_chart(fig_rs, use_container_width=True)
 
-        # --- Evolução Mensal ---
+        # --- Evolução Mensal (somente mês/ano) ---
         if 'mês_repasse' in df_filt.columns:
-            # Converter para datetime
             df_filt['mês_repasse_dt'] = pd.to_datetime(df_filt['mês_repasse'], format='%m/%Y', errors='coerce')
             df_mes = df_filt.groupby('mês_repasse_dt', as_index=False)['valor_solicitado'].sum()
             df_mes = df_mes.sort_values('mês_repasse_dt')
 
-            fig_mes = px.line(df_mes, x='mês_repasse_dt', y='valor_solicitado', markers=True,
-                              title="Valor Solicitado por Mês de Repasse")
-            st.plotly_chart(fig_mes, use_container_width=True)
+            # Formatar eixo x como MM/YYYY
+            df_mes['mes_ano'] = df_mes['mês_repasse_dt'].dt.strftime('%m/%Y')
 
-        # --- Progresso de Repasses ---
-        efetuado = df_filt.loc[df_filt['situacao'] == 'Repasse Efetuado', 'valor_solicitado'].sum()
-        aguardando = df_filt.loc[df_filt['situacao'] == 'Aguardando repasse', 'valor_solicitado'].sum()
-        total_possivel = efetuado + aguardando
-        fig_prog = go.Figure()
-        fig_prog.add_trace(go.Bar(x=['Total Possível'], y=[total_possivel],
-                                  name='Total Possível', marker_color='lightgray'))
-        fig_prog.add_trace(go.Bar(x=['Total Possível'], y=[efetuado],
-                                  name='Efetuado', marker_color='green'))
-        fig_prog.update_layout(barmode='overlay', title="Comparativo: Efetuado vs Total Possível",
-                               yaxis_title="Valor (R$)")
-        st.plotly_chart(fig_prog, use_container_width=True)
+            fig_mes = px.line(df_mes, x='mes_ano', y='valor_solicitado', markers=True,
+                              title="Evolução mensal: Valor Repassado")
+            st.plotly_chart(fig_mes, use_container_width=True)
 
         # --- Quantidade e Valor por Origem ---
         if 'origem' in df_filt.columns:
@@ -126,11 +115,12 @@ with tab1:
                 soma_valor=('valor_solicitado', 'sum')
             )
             fig_origem = px.scatter(df_origem, x='origem', y='soma_valor', size='quantidade',
-                                    color='origem', title="Origem: Quantidade e Valor Solicitado")
+                                    color='origem', title="Valor Solicitado e quantidade de notificações por tipo")
             st.plotly_chart(fig_origem, use_container_width=True)
 
     else:
         st.warning("⚠️ Nenhum dado disponível para os filtros selecionados.")
+
 
 
 # ======================================================
