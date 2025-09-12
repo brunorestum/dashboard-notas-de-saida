@@ -21,7 +21,7 @@ with tab1:
     st.markdown("Use os filtros abaixo para segmentar os dados.")
 
     # --- Leitura do Excel 1 ---
-    url1 = "https://raw.githubusercontent.com/brunorestum/dashboard-notas-de-saida/main/Resultados_Notificacao.xlsx"
+    url1 = "https://raw.githubusercontent.com/brunorestum/dashboard-notas-de-saida/f77513753a72efc8a1a43e46f6a82db867f6181a/resultado_notificacao.xlsx"
     df = pd.read_excel(url1, engine="openpyxl")
 
     # --- Padronizar nomes das colunas ---
