@@ -25,9 +25,8 @@ with tab1:
     df = pd.read_excel(url1, engine="openpyxl")
 
     # --- Padronizar nomes das colunas ---
-    df.columns = df.columns.str.strip()  # remove espaços extras
-    df.columns = df.columns.str.lower()  # coloca todas em minúsculas
-    df.rename(columns={"período": "periodo"}, inplace=True)  # garante nome correto
+    df.columns = df.columns.str.strip().str.lower()
+    df.rename(columns={"período": "periodo"}, inplace=True)
 
     # --- Tratamento da coluna período ---
     if 'periodo' in df.columns:
@@ -40,14 +39,26 @@ with tab1:
 
     # --- Filtros ---
     st.sidebar.header("🔎 Filtros")
-    cnpjs = st.sidebar.multiselect("Selecione CNPJ:", options=sorted(df_expl.get('cnpj', pd.Series()).dropna().unique()))
-    periodos = st.sidebar.multiselect("Selecione período(s):", options=sorted(df_expl.get('periodo', pd.Series()).dropna().unique()))
+    todos_cnpjs = sorted(df_expl.get('cnpj', pd.Series()).dropna().unique())
+    cnpjs = st.sidebar.multiselect(
+        "Selecione CNPJ:",
+        options=todos_cnpjs,
+        default=todos_cnpjs  # todos selecionados por padrão
+    )
 
+    todos_periodos = ["anotodo"] + sorted(df_expl.get('periodo', pd.Series()).dropna().unique())
+    periodos = st.sidebar.multiselect(
+        "Selecione período(s):",
+        options=todos_periodos,
+        default=["anotodo"]  # padrão: anotodo (tudo)
+    )
+
+    # --- Aplicar filtros ---
     df_filt = df_expl.copy()
     if cnpjs:
-        df_filt = df_filt[df_filt.get('cnpj', pd.Series()).isin(cnpjs)]
-    if periodos:
-        df_filt = df_filt[df_filt.get('periodo', pd.Series()).isin(periodos)]
+        df_filt = df_filt[df_filt.get("cnpj", pd.Series()).isin(cnpjs)]
+    if "anotodo" not in periodos:
+        df_filt = df_filt[df_filt.get("periodo", pd.Series()).isin(periodos)]
 
     # --- KPIs ---
     total_solicitado = df_filt.get('valor_solicitado', pd.Series()).sum()
@@ -59,9 +70,7 @@ with tab1:
 
     st.markdown("---")
 
-    # --- Gráficos ---
-    # (Aqui você pode manter os gráficos iguais, mas sempre usando df_filt.get('coluna', pd.Series())
-    # para evitar KeyError se alguma coluna não existir)
+    # --- Aqui você continua com os gráficos usando df_filt ---
 
 # ======================================================
 # ABA 2 - Notas de Saída Indevidas Scanc
@@ -76,27 +85,21 @@ with tab2:
 
     # --- Padronizar nomes das colunas ---
     comparacao_df.columns = comparacao_df.columns.str.strip().str.lower()
-    comparacao_df.rename(columns={
-        "razsocial": "razsocial",
-        "mesano": "mesano",
-        "produto_classificado": "produto_classificado",
-        "vlricmsrep": "vlricmsrep",
-        "qtd": "qtd"
-    }, inplace=True)
 
     # --- Filtros na sidebar ---
     st.sidebar.header("🔎 Filtros")
+    todos_contribuintes = sorted(comparacao_df.get("razsocial", pd.Series()).dropna().unique())
     contribuintes = st.sidebar.multiselect(
         "Selecione o contribuinte (razsocial):",
-        options=comparacao_df.get("razsocial", pd.Series()).dropna().unique(),
-        default=None
+        options=todos_contribuintes,
+        default=todos_contribuintes  # todos selecionados por padrão
     )
 
-    meses_options = ["anotodo"] + sorted(comparacao_df.get("mesano", pd.Series()).dropna().unique().tolist())
+    todos_meses = ["anotodo"] + sorted(comparacao_df.get("mesano", pd.Series()).dropna().unique())
     meses = st.sidebar.multiselect(
         "Selecione o período (mesano):",
-        options=meses_options,
-        default=["anotodo"]
+        options=todos_meses,
+        default=["anotodo"]  # padrão: anotodo (tudo)
     )
 
     # --- Aplicar filtros ---
@@ -116,5 +119,4 @@ with tab2:
 
     st.markdown("---")
 
-    # --- Gráficos ---
-    # (Mantém os gráficos existentes, usando df_filtered.get('coluna', pd.Series()))
+    # --- Aqui você continua com os gráficos usando df_filtered ---
