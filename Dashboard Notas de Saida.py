@@ -20,14 +20,12 @@ with tab1:
     st.title("📊 Dashboard de Notificação")
     st.markdown("Use os filtros abaixo para segmentar os dados.")
 
-    # --- Leitura do Excel 1 ---
+    # --- Leitura do Excel ---
     url1 = "https://raw.githubusercontent.com/brunorestum/dashboard-notas-de-saida/f77513753a72efc8a1a43e46f6a82db867f6181a/resultado_notificacao.xlsx"
     df = pd.read_excel(url1, engine="openpyxl")
-
-    # --- Padronizar nomes das colunas ---
     df.columns = [c.strip().lower() for c in df.columns]
 
-    # --- Explodir períodos caso haja múltiplos ---
+    # --- Explodir períodos ---
     df['periodo'] = df['periodo'].astype(str)
     df_expl = df.assign(periodo=df['periodo'].str.split(';')).explode('periodo')
     df_expl['periodo'] = df_expl['periodo'].str.strip()
@@ -36,16 +34,12 @@ with tab1:
     st.sidebar.header("🔎 Filtros")
     razao_social_opcoes = sorted(df_expl['raz_social'].dropna().unique())
     razao_social_sel = st.sidebar.multiselect(
-        "Selecione Razão Social:",
-        options=razao_social_opcoes,
-        default=[]
+        "Selecione Razão Social:", options=razao_social_opcoes, default=[]
     )
 
     periodos_opcoes = ["anotodo"] + sorted(df_expl['periodo'].dropna().unique())
     periodos_sel = st.sidebar.multiselect(
-        "Selecione Período(s):",
-        options=periodos_opcoes,
-        default=["anotodo"]
+        "Selecione Período(s):", options=periodos_opcoes, default=["anotodo"]
     )
 
     # --- Aplicar filtros ---
@@ -55,7 +49,7 @@ with tab1:
     if "anotodo" not in periodos_sel:
         df_filt = df_filt[df_filt['periodo'].isin(periodos_sel)]
 
-    # --- Garantir tipo numérico ---
+    # --- Garantir valor numérico ---
     df_filt['valor_solicitado'] = pd.to_numeric(df_filt['valor_solicitado'], errors='coerce').fillna(0)
 
     # --- KPIs ---
@@ -69,23 +63,19 @@ with tab1:
     st.markdown("---")
 
     if not df_filt.empty:
-        # --- Gráficos lado a lado com tamanhos ajustados ---
-        col1, col2 = st.columns([1, 2])  # menor para status, maior para valor por situação
-
+        # --- Gráficos lado a lado ---
+        col1, col2 = st.columns([1, 2])
         with col1:
             if 'status' in df_filt.columns:
                 fig_status = px.pie(df_filt, names='status', title="Proporção por Status")
                 st.plotly_chart(fig_status, use_container_width=True)
-
         with col2:
             if 'situacao' in df_filt.columns:
                 df_sit = df_filt.groupby('situacao', as_index=False)['valor_solicitado'].sum()
-                fig_sit = px.bar(
-                    df_sit.sort_values('valor_solicitado', ascending=False),
-                    x='situacao', y='valor_solicitado',
-                    color='situacao', text_auto=".2s",
-                    title="Valor Solicitado por Situação"
-                )
+                fig_sit = px.bar(df_sit.sort_values('valor_solicitado', ascending=False),
+                                 x='situacao', y='valor_solicitado',
+                                 color='situacao', text_auto=".2s",
+                                 title="Valor Solicitado por Situação")
                 st.plotly_chart(fig_sit, use_container_width=True)
 
         # --- Top 10 Razões Sociais ---
@@ -95,13 +85,12 @@ with tab1:
                         title="Top 10 – Razão Social")
         st.plotly_chart(fig_rs, use_container_width=True)
 
-        # --- Evolução Mensal (somente MM/YYYY) ---
+        # --- Evolução Mensal ---
         if 'mês_repasse' in df_filt.columns:
             df_filt['mês_repasse_dt'] = pd.to_datetime(df_filt['mês_repasse'], format='%m/%Y', errors='coerce')
             df_mes = df_filt.groupby('mês_repasse_dt', as_index=False)['valor_solicitado'].sum()
             df_mes = df_mes.sort_values('mês_repasse_dt')
             df_mes['mes_ano'] = df_mes['mês_repasse_dt'].dt.strftime('%m/%Y')
-
             fig_mes = px.line(df_mes, x='mes_ano', y='valor_solicitado', markers=True,
                               title="Valor Solicitado por Mês de Repasse")
             st.plotly_chart(fig_mes, use_container_width=True)
@@ -109,49 +98,38 @@ with tab1:
         # --- Quantidade e Valor por Origem ---
         if 'origem' in df_filt.columns:
             df_origem = df_filt.groupby('origem', as_index=False).agg(
-                quantidade=('origem', 'count'),
-                soma_valor=('valor_solicitado', 'sum')
+                quantidade=('origem', 'count'), soma_valor=('valor_solicitado', 'sum')
             )
             fig_origem = px.scatter(df_origem, x='origem', y='soma_valor', size='quantidade',
                                     color='origem', title="Origem: Quantidade e Valor Solicitado")
             st.plotly_chart(fig_origem, use_container_width=True)
 
-       # --- Economia Total Estimada ---
-if not df_filt.empty:
-    st.subheader("💰 Economia Total Estimada com Notificações")
+        # --- Economia Total ---
+        num_notificacoes = df_filt.shape[0]
+        horas_por_notificacao = 8
+        custo_hora = 173
+        horas_total = num_notificacoes * horas_por_notificacao
+        valor_economizado = horas_total * custo_hora
 
-    # Número total de notificações
-    num_notificacoes = df_filt.shape[0]
+        st.subheader("💰 Economia Total Estimada com Notificações")
+        st.markdown(f"- Total de Notificações Processadas: **{num_notificacoes}**")
+        st.markdown(f"- Horas Totais Investidas: **{horas_total} h**")
+        st.markdown(f"- Valor Economizado com a Ação: **R$ {valor_economizado:,.2f}** 💸")
 
-    # Horas e valor economizado
-    horas_por_notificacao = 8  # 1 dia = 8h
-    custo_hora = 173
-    horas_total = num_notificacoes * horas_por_notificacao
-    valor_economizado = horas_total * custo_hora
-
-    # Mostrar os números
-    st.markdown(f"- Total de Notificações Processadas: **{num_notificacoes}**")
-    st.markdown(f"- Horas Totais Investidas: **{horas_total} h**")
-    st.markdown(f"- Valor Economizado com a Ação: **R$ {valor_economizado:,.2f}** 💸")
-
-    # --- Gráfico animado de economia ---
-    import plotly.graph_objects as go
-    fig_economia = go.Figure(
-        data=[go.Bar(x=['Valor Economizado'], y=[valor_economizado],
-                     text=[f"R$ {valor_economizado:,.2f}"], textposition='auto',
-                     marker_color='gold')]
-    )
-
-    # Animação simples de subida da barra
-    fig_economia.update_traces(marker_line_width=2)
-    fig_economia.update_layout(title="💰 Valor Total Economizado",
-                               yaxis_title="R$",
-                               yaxis=dict(range=[0, valor_economizado*1.2]))
-    st.plotly_chart(fig_economia, use_container_width=True)
-
+        # --- Gráfico animado de economia ---
+        fig_economia = go.Figure(
+            data=[go.Bar(x=['Valor Economizado'], y=[valor_economizado],
+                         text=[f"R$ {valor_economizado:,.2f}"], textposition='auto',
+                         marker_color='gold')]
+        )
+        fig_economia.update_layout(title="💰 Valor Total Economizado",
+                                   yaxis_title="R$",
+                                   yaxis=dict(range=[0, valor_economizado*1.2]))
+        st.plotly_chart(fig_economia, use_container_width=True)
 
     else:
         st.warning("⚠️ Nenhum dado disponível para os filtros selecionados.")
+
 
 
 
