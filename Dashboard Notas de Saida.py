@@ -21,7 +21,7 @@ with tab1:
     st.markdown("Use os filtros abaixo para segmentar os dados.")
 
     # --- Leitura do Excel direto do GitHub ---
-    url1 = "url1 = "https://raw.githubusercontent.com/brunorestum/dashboard-notas-de-saida/main/Resultados_Notificacao.xlsx"
+    url1 = "url1 = "https://raw.githubusercontent.com/brunorestum/dashboard-notas-de-saida/97be5cda4b1417f9b8ae6be342bc41e4066db3f3/resultado_notificacao.xlsx"
 df = pd.read_excel(url1, engine="openpyxl")
 "
     df = pd.read_excel(url1, engine="openpyxl")
