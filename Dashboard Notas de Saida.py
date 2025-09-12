@@ -106,7 +106,7 @@ with tab1:
 
         # --- Economia Total ---
         num_notificacoes = int(df_filt.shape[0])
-        horas_por_notificacao = 8
+        horas_por_notificacao = 16
         custo_hora = 173
         horas_total = num_notificacoes * horas_por_notificacao
         valor_economizado = horas_total * custo_hora
