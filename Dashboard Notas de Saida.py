@@ -113,7 +113,7 @@ with tab1:
 
         st.subheader("💰 Economia Total Estimada com Notificações")
         st.markdown(f"- Total de Notificações Processadas: **{num_notificacoes}**")
-        st.markdown(f"- Horas Totais Investidas: **{horas_total} h**")
+        st.markdown(f"- Horas Totais Economizadas: **{horas_total} h**")
         st.markdown(f"- Valor Economizado Estimado: **R$ {valor_economizado:,.2f}**")
 
         # --- Gauge Circular para Valor Economizado ---
@@ -122,7 +122,7 @@ with tab1:
             mode="gauge+number",
             value=valor_economizado,
             number={'prefix': "R$ ", 'valueformat': ",.0f"},
-            title={'text': "Valor Economizado"},
+            title={'text': "Valor Economizado para Instituição"},
             gauge={'axis': {'range': [0, max(valor_economizado*1.2, 100000)]},
                    'bar': {'color': "green"},
                    'steps': [
