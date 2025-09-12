@@ -105,11 +105,12 @@ with tab1:
             st.plotly_chart(fig_origem, use_container_width=True)
 
         # --- Economia Total com Contador Animado ---
-        num_notificacoes = df_filt.shape[0]
+        num_notificacoes = int(df_filt.shape[0])
         horas_por_notificacao = 8
         custo_hora = 173
         horas_total = num_notificacoes * horas_por_notificacao
         valor_economizado = horas_total * custo_hora
+        valor_economizado_int = int(valor_economizado)
 
         st.subheader("💰 Economia Total Estimada com Notificações")
         st.markdown(f"- Total de Notificações Processadas: **{num_notificacoes}**")
@@ -120,7 +121,7 @@ with tab1:
         <h3>Valor Economizado: <span id="valor" style="color:gold;">0</span></h3>
         <script>
         let valor = 0;
-        let final = {int(valor_economizado)};
+        let final = {valor_economizado_int};
         let el = document.getElementById('valor');
         let interval = setInterval(() => {{
             valor += Math.ceil(final/100);
@@ -135,6 +136,7 @@ with tab1:
 
     else:
         st.warning("⚠️ Nenhum dado disponível para os filtros selecionados.")
+
 
 
 
