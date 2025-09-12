@@ -182,4 +182,44 @@ with tab2:
             st.plotly_chart(fig_qtd, use_container_width=True)
         with col2:
             df_prod = df_filtered.groupby("produto_classificado", as_index=False)["vlricmsrep"].sum()
-            fig_icms = px.bar(df_prod, x="produto_classificado", y="vl
+            fig_icms = px.bar(
+                df_prod,
+                x="produto_classificado",
+                y="vlricmsrep",
+                color="produto_classificado",
+                text_auto=".2s",
+                title="ICMS a Repassar por Produto"
+            )
+            st.plotly_chart(fig_icms, use_container_width=True)
+
+        # Top 10 Contribuintes
+        st.subheader("💸 Maiores Contribuições por Contribuinte (ICMS)")
+        df_razsocial = df_filtered.groupby("razsocial", as_index=False)["vlricmsrep"].sum()
+        df_razsocial = df_razsocial.sort_values(by="vlricmsrep", ascending=False).head(10)
+        fig_razsocial = px.bar(
+            df_razsocial,
+            x="razsocial",
+            y="vlricmsrep",
+            color="vlricmsrep",
+            hover_data={"razsocial": True, "vlricmsrep": ":,.2f"},
+            title="Top 10 Contribuintes por ICMS Repassado",
+            labels={"vlricmsrep": "ICMS a Repassar (R$)", "razsocial": "Contribuinte"}
+        )
+        st.plotly_chart(fig_razsocial, use_container_width=True)
+
+        # Evolução Mensal
+        st.subheader("📅 Evolução Mensal do ICMS repassado indevidamente")
+        df_mes = df_filtered.groupby("mesano", as_index=False)["vlricmsrep"].sum()
+        if not df_mes.empty:
+            df_mes["mesano_str"] = df_mes["mesano"].astype(str)
+            df_mes = df_mes.sort_values("mesano_str")
+            fig_mes = px.line(
+                df_mes,
+                x="mesano_str",
+                y="vlricmsrep",
+                markers=True,
+                title="Evolução Mensal do ICMS repassado indevidamente"
+            )
+            st.plotly_chart(fig_mes, use_container_width=True)
+    else:
+        st.warning("⚠️ Nenhum dado disponível para os filtros selecionados na aba 2.")
