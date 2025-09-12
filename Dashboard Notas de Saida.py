@@ -104,7 +104,7 @@ with tab1:
                                     color='origem', title="Origem: Quantidade e Valor Solicitado")
             st.plotly_chart(fig_origem, use_container_width=True)
 
-        # --- Economia Total com Moedas Animadas ---
+        # --- Economia Total com Ampulheta Animada ---
         num_notificacoes = df_filt.shape[0]
         horas_por_notificacao = 8
         custo_hora = 173
@@ -116,32 +116,29 @@ with tab1:
         st.markdown(f"- Horas Totais Investidas: **{horas_total} h**")
         st.markdown(f"- Valor Economizado com a Ação: **R$ {valor_economizado:,.2f}** 💸")
 
-        # --- Moedas caindo via HTML/CSS/JS ---
-        valor_economizado_str = f"R$ {valor_economizado:,.2f}"
+        # --- Ampulheta HTML/CSS ---
+        valor_total_str = f"R$ {valor_economizado:,.2f}"
+
         html_code = f"""
-        <div style="position: relative; height: 300px; background-color: #f0f0f0; overflow: hidden;">
-          <h2 style="text-align:center;">Economia Total: <span style='color:gold;'>{valor_economizado_str}</span></h2>
-          <!-- Moedas animadas -->
-          <div class="coin" style="position:absolute; top:-50px; left:10%; font-size:30px;">💰</div>
-          <div class="coin" style="position:absolute; top:-50px; left:30%; font-size:40px;">💰</div>
-          <div class="coin" style="position:absolute; top:-50px; left:50%; font-size:35px;">💰</div>
-          <div class="coin" style="position:absolute; top:-50px; left:70%; font-size:25px;">💰</div>
+        <div style="position: relative; width: 150px; height: 300px; margin:auto;">
+          <div style="position:absolute; bottom:0; width: 100%; height:0; background-color: gold; animation: fill 3s infinite alternate;"></div>
+          <div style="position:absolute; top:0; width: 100%; height: 100%; border-left: 5px solid black; border-right: 5px solid black; clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);"></div>
+          <h3 style="text-align:center; margin-top:320px;">{valor_total_str}</h3>
         </div>
 
         <style>
-        @keyframes fall {{
-          0% {{ transform: translateY(0); }}
-          100% {{ transform: translateY(250px); }}
-        }}
-        .coin {{
-          animation: fall 2s infinite linear;
+        @keyframes fill {{
+          0% {{ height: 0%; }}
+          100% {{ height: 100%; }}
         }}
         </style>
         """
+
         st.markdown(html_code, unsafe_allow_html=True)
 
     else:
         st.warning("⚠️ Nenhum dado disponível para os filtros selecionados.")
+
 
 
 # ======================================================
