@@ -64,7 +64,7 @@ with tab1:
 
     col1, col2 = st.columns(2)
     col1.metric("💰 Valor Total Solicitado", f"R$ {total_solicitado:,.2f}")
-    col2.metric("📄 Total de Notificações", f"{total_registros:,}")
+    col2.metric("📄 Total de Registros", f"{total_registros:,}")
 
     st.markdown("---")
 
@@ -88,24 +88,22 @@ with tab1:
                 )
                 st.plotly_chart(fig_sit, use_container_width=True)
 
-        # --- Gráfico Top 10 Razões Sociais ---
+        # --- Top 10 Razões Sociais ---
         df_rs = df_filt.groupby('raz_social', as_index=False)['valor_solicitado'].sum()
         df_rs = df_rs.sort_values('valor_solicitado', ascending=False).head(10)
         fig_rs = px.bar(df_rs, x='raz_social', y='valor_solicitado', color='valor_solicitado',
                         title="Top 10 – Razão Social")
         st.plotly_chart(fig_rs, use_container_width=True)
 
-        # --- Evolução Mensal (somente mês/ano) ---
+        # --- Evolução Mensal (somente MM/YYYY) ---
         if 'mês_repasse' in df_filt.columns:
             df_filt['mês_repasse_dt'] = pd.to_datetime(df_filt['mês_repasse'], format='%m/%Y', errors='coerce')
             df_mes = df_filt.groupby('mês_repasse_dt', as_index=False)['valor_solicitado'].sum()
             df_mes = df_mes.sort_values('mês_repasse_dt')
-
-            # Formatar eixo x como MM/YYYY
             df_mes['mes_ano'] = df_mes['mês_repasse_dt'].dt.strftime('%m/%Y')
 
             fig_mes = px.line(df_mes, x='mes_ano', y='valor_solicitado', markers=True,
-                              title="Evolução mensal: Valor Repassado")
+                              title="Valor Solicitado por Mês de Repasse")
             st.plotly_chart(fig_mes, use_container_width=True)
 
         # --- Quantidade e Valor por Origem ---
@@ -115,11 +113,51 @@ with tab1:
                 soma_valor=('valor_solicitado', 'sum')
             )
             fig_origem = px.scatter(df_origem, x='origem', y='soma_valor', size='quantidade',
-                                    color='origem', title="Valor Solicitado e quantidade de notificações por tipo")
+                                    color='origem', title="Origem: Quantidade e Valor Solicitado")
             st.plotly_chart(fig_origem, use_container_width=True)
+
+        # --- Economia Interativa com Notificações ---
+        st.subheader("💡 Economia Estimada por Razão Social e Período")
+
+        # Agrupar por razão social e período
+        df_economia = df_filt.groupby(['raz_social', 'periodo'], as_index=False).size()
+        df_economia.rename(columns={'size': 'num_notificacoes'}, inplace=True)
+
+        # Calcular horas e valor economizado
+        horas_por_notificacao = 8  # 1 dia = 8h
+        custo_hora = 173
+        df_economia['horas_total'] = df_economia['num_notificacoes'] * horas_por_notificacao
+        df_economia['valor_economizado'] = df_economia['horas_total'] * custo_hora
+
+        # --- Gráfico de Valor Economizado ---
+        fig_economia_inter = px.bar(
+            df_economia,
+            x='raz_social',
+            y='valor_economizado',
+            color='periodo',
+            text=df_economia['valor_economizado'].apply(lambda x: f"R$ {x:,.2f}"),
+            title="Valor Economizado por Razão Social e Período",
+            labels={"valor_economizado": "Valor Economizado (R$)", "raz_social": "Razão Social", "periodo": "Período"},
+            barmode='group'
+        )
+        st.plotly_chart(fig_economia_inter, use_container_width=True)
+
+        # --- Gráfico de Horas Totais ---
+        fig_horas = px.bar(
+            df_economia,
+            x='raz_social',
+            y='horas_total',
+            color='periodo',
+            text=df_economia['horas_total'].apply(lambda x: f"{x} h"),
+            title="Horas Trabalhadas Estimadas por Razão Social e Período",
+            labels={"horas_total": "Horas Trabalhadas", "raz_social": "Razão Social", "periodo": "Período"},
+            barmode='group'
+        )
+        st.plotly_chart(fig_horas, use_container_width=True)
 
     else:
         st.warning("⚠️ Nenhum dado disponível para os filtros selecionados.")
+
 
 
 
