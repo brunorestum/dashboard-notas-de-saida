@@ -104,7 +104,7 @@ with tab1:
                                     color='origem', title="Origem: Quantidade e Valor Solicitado")
             st.plotly_chart(fig_origem, use_container_width=True)
 
-        # --- Economia Total ---
+        # --- Economia Total com Moedas Animadas ---
         num_notificacoes = df_filt.shape[0]
         horas_por_notificacao = 8
         custo_hora = 173
@@ -116,16 +116,33 @@ with tab1:
         st.markdown(f"- Horas Totais Investidas: **{horas_total} h**")
         st.markdown(f"- Valor Economizado com a Ação: **R$ {valor_economizado:,.2f}** 💸")
 
-        # --- Gráfico animado de economia ---
-        fig_economia = go.Figure(
-            data=[go.Bar(x=['Valor Economizado'], y=[valor_economizado],
-                         text=[f"R$ {valor_economizado:,.2f}"], textposition='auto',
-                         marker_color='gold')]
-        )
-        fig_economia.update_layout(title="💰 Valor Total Economizado",
-                                   yaxis_title="R$",
-                                   yaxis=dict(range=[0, valor_economizado*1.2]))
-        st.plotly_chart(fig_economia, use_container_width=True)
+        # --- Moedas caindo via HTML/CSS/JS ---
+        valor_economizado_str = f"R$ {valor_economizado:,.2f}"
+        html_code = f"""
+        <div style="position: relative; height: 300px; background-color: #f0f0f0; overflow: hidden;">
+          <h2 style="text-align:center;">Economia Total: <span style='color:gold;'>{valor_economizado_str}</span></h2>
+          <!-- Moedas animadas -->
+          <div class="coin" style="position:absolute; top:-50px; left:10%; font-size:30px;">💰</div>
+          <div class="coin" style="position:absolute; top:-50px; left:30%; font-size:40px;">💰</div>
+          <div class="coin" style="position:absolute; top:-50px; left:50%; font-size:35px;">💰</div>
+          <div class="coin" style="position:absolute; top:-50px; left:70%; font-size:25px;">💰</div>
+        </div>
+
+        <style>
+        @keyframes fall {{
+          0% {{ transform: translateY(0); }}
+          100% {{ transform: translateY(250px); }}
+        }}
+        .coin {{
+          animation: fall 2s infinite linear;
+        }}
+        </style>
+        """
+        st.markdown(html_code, unsafe_allow_html=True)
+
+    else:
+        st.warning("⚠️ Nenhum dado disponível para os filtros selecionados.")
+
 
     else:
         st.warning("⚠️ Nenhum dado disponível para os filtros selecionados.")
