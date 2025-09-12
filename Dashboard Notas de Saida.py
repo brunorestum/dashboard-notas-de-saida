@@ -118,16 +118,45 @@ with tab1:
 
         valor_total_str = f"R$ {valor_economizado:,.2f}"
 
-        # --- Ampulheta com partículas de areia ---
+        # --- Ampulheta com partículas de areia e fundo/contorno ---
         html_ampulheta_realista = f"""
         <div style="width:120px; height:250px; margin:auto; position:relative;">
-          <!-- Ampulheta -->
-          <div style="position:absolute; top:0; left:0; width:100%; height:100%; border-left:4px solid black; border-right:4px solid black; clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); overflow:hidden;">
-              <!-- Areia superior caindo -->
-              <div style="position:absolute; top:0; left:50%; width:4px; height:100%; background:gold; animation: sandFall 8s infinite;"></div>
+          <!-- Vidro da ampulheta -->
+          <div style="
+              position:absolute; top:0; left:0; width:100%; height:100%;
+              border-left:4px solid black; border-right:4px solid black;
+              background: rgba(220,220,220,0.2);
+              clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+              overflow:hidden;
+          ">
+              <!-- Areia caindo -->
+              <div style="
+                  position:absolute; top:0; left:50%; width:4px; height:100%;
+                  background:gold; animation: sandFall 8s infinite;
+              "></div>
               <!-- Areia acumulada inferior -->
-              <div style="position:absolute; bottom:0; left:0; width:100%; height:0%; background:gold; animation: sandFill 20s forwards;"></div>
+              <div style="
+                  position:absolute; bottom:0; left:0; width:100%; height:0%;
+                  background:gold; animation: sandFill 20s forwards;
+              "></div>
           </div>
+
+          <!-- Contorno superior -->
+          <div style="
+              position:absolute; top:0; left:0; width:100%; height:50%;
+              border-top:4px solid black; border-left:4px solid black; border-right:4px solid black;
+              border-radius: 50% 50% 0 0;
+              box-sizing:border-box;
+          "></div>
+
+          <!-- Contorno inferior -->
+          <div style="
+              position:absolute; bottom:0; left:0; width:100%; height:50%;
+              border-bottom:4px solid black; border-left:4px solid black; border-right:4px solid black;
+              border-radius: 0 0 50% 50%;
+              box-sizing:border-box;
+          "></div>
+
           <!-- Valor abaixo -->
           <h3 style="text-align:center; margin-top:260px; font-size:16px;">{valor_total_str}</h3>
         </div>
@@ -149,6 +178,7 @@ with tab1:
 
     else:
         st.warning("⚠️ Nenhum dado disponível para os filtros selecionados.")
+
 
 
 # ======================================================
