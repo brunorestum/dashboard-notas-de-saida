@@ -144,13 +144,6 @@ with tab1:
         st.warning("⚠️ Nenhum dado disponível para os filtros selecionados.")
 
 
-    else:
-        st.warning("⚠️ Nenhum dado disponível para os filtros selecionados.")
-
-
-
-
-
 # ======================================================
 # ABA 2 - Notas de Saída Indevidas Scanc
 # ======================================================
