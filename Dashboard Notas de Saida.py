@@ -104,7 +104,7 @@ with tab1:
                                     color='origem', title="Origem: Quantidade e Valor Solicitado")
             st.plotly_chart(fig_origem, use_container_width=True)
 
-        # --- Economia Total com Ampulheta Realista ---
+        # --- Economia Total com Contador Animado ---
         num_notificacoes = df_filt.shape[0]
         horas_por_notificacao = 8
         custo_hora = 173
@@ -114,70 +114,28 @@ with tab1:
         st.subheader("💰 Economia Total Estimada com Notificações")
         st.markdown(f"- Total de Notificações Processadas: **{num_notificacoes}**")
         st.markdown(f"- Horas Totais Investidas: **{horas_total} h**")
-        st.markdown(f"- Valor Economizado com a Ação: **R$ {valor_economizado:,.2f}** 💸")
 
-        valor_total_str = f"R$ {valor_economizado:,.2f}"
-
-        # --- Ampulheta com partículas de areia e fundo/contorno ---
-        html_ampulheta_realista = f"""
-        <div style="width:120px; height:250px; margin:auto; position:relative;">
-          <!-- Vidro da ampulheta -->
-          <div style="
-              position:absolute; top:0; left:0; width:100%; height:100%;
-              border-left:4px solid black; border-right:4px solid black;
-              background: rgba(220,220,220,0.2);
-              clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-              overflow:hidden;
-          ">
-              <!-- Areia caindo -->
-              <div style="
-                  position:absolute; top:0; left:50%; width:4px; height:100%;
-                  background:gold; animation: sandFall 8s infinite;
-              "></div>
-              <!-- Areia acumulada inferior -->
-              <div style="
-                  position:absolute; bottom:0; left:0; width:100%; height:0%;
-                  background:gold; animation: sandFill 20s forwards;
-              "></div>
-          </div>
-
-          <!-- Contorno superior -->
-          <div style="
-              position:absolute; top:0; left:0; width:100%; height:50%;
-              border-top:4px solid black; border-left:4px solid black; border-right:4px solid black;
-              border-radius: 50% 50% 0 0;
-              box-sizing:border-box;
-          "></div>
-
-          <!-- Contorno inferior -->
-          <div style="
-              position:absolute; bottom:0; left:0; width:100%; height:50%;
-              border-bottom:4px solid black; border-left:4px solid black; border-right:4px solid black;
-              border-radius: 0 0 50% 50%;
-              box-sizing:border-box;
-          "></div>
-
-          <!-- Valor abaixo -->
-          <h3 style="text-align:center; margin-top:260px; font-size:16px;">{valor_total_str}</h3>
-        </div>
-
-        <style>
-        @keyframes sandFall {{
-          0% {{ transform: translateY(-100%); opacity:0; }}
-          50% {{ transform: translateY(50%); opacity:1; }}
-          100% {{ transform: translateY(100%); opacity:0; }}
-        }}
-        @keyframes sandFill {{
-          0% {{ height: 0%; }}
-          100% {{ height: 100%; }}
-        }}
-        </style>
-        """
-
-        st.markdown(html_ampulheta_realista, unsafe_allow_html=True)
+        # --- Contador animado ---
+        st.markdown(f"""
+        <h3>Valor Economizado: <span id="valor" style="color:gold;">0</span></h3>
+        <script>
+        let valor = 0;
+        let final = {int(valor_economizado)};
+        let el = document.getElementById('valor');
+        let interval = setInterval(() => {{
+            valor += Math.ceil(final/100);
+            if (valor >= final) {{
+                valor = final;
+                clearInterval(interval);
+            }}
+            el.innerText = "R$ " + valor.toLocaleString();
+        }}, 50);
+        </script>
+        """, unsafe_allow_html=True)
 
     else:
         st.warning("⚠️ Nenhum dado disponível para os filtros selecionados.")
+
 
 
 
