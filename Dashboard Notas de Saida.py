@@ -20,12 +20,11 @@ with tab1:
     st.title("📊 Dashboard de Notificação")
     st.markdown("Use os filtros abaixo para segmentar os dados.")
 
-    # --- Leitura do Excel direto do GitHub ---
-    url1 = "https://raw.githubusercontent.com/brunorestum/dashboard-notas-de-saida/f77513753a72efc8a1a43e46f6a82db867f6181a/resultado_notificacao.xlsx"
+    # --- Leitura do Excel 1 ---
+    url1 = "https://raw.githubusercontent.com/brunorestum/dashboard-notas-de-saida/main/Resultados_Notificacao.xlsx"
     df = pd.read_excel(url1, engine="openpyxl")
 
-
-    # --- Garantir que os nomes das colunas estejam corretos ---
+    # --- Padronizar nomes das colunas ---
     df.columns = [c.strip().lower() for c in df.columns]
 
     # --- Explodir períodos caso haja múltiplos ---
@@ -69,58 +68,70 @@ with tab1:
 
     st.markdown("---")
 
-    # --- Gráficos ---
     if not df_filt.empty:
-        # Gráfico 1: Quantidade de registros por status
-        if 'status' in df_filt.columns:
-            fig1 = px.pie(df_filt, names='status', title="Proporção por Status")
-            st.plotly_chart(fig1, use_container_width=True)
+        # --- Gráficos lado a lado: Status e Valor por Situação ---
+        col1, col2 = st.columns(2)
 
-        # Gráfico 2: Valor solicitado por situação
-        if 'situacao' in df_filt.columns:
-            df_sit = df_filt.groupby('situacao', as_index=False)['valor_solicitado'].sum()
-            fig2 = px.bar(df_sit.sort_values('valor_solicitado', ascending=False),
-                          x='situacao', y='valor_solicitado', color='situacao', text_auto=".2s",
-                          title="Valor Solicitado por Situação")
-            st.plotly_chart(fig2, use_container_width=True)
+        with col1:
+            if 'status' in df_filt.columns:
+                fig_status = px.pie(df_filt, names='status', title="Proporção por Status")
+                st.plotly_chart(fig_status, use_container_width=True)
 
-        # Gráfico 3: Top 10 Razões Sociais
+        with col2:
+            if 'situacao' in df_filt.columns:
+                df_sit = df_filt.groupby('situacao', as_index=False)['valor_solicitado'].sum()
+                fig_sit = px.bar(
+                    df_sit.sort_values('valor_solicitado', ascending=False),
+                    x='situacao', y='valor_solicitado',
+                    color='situacao', text_auto=".2s",
+                    title="Valor Solicitado por Situação"
+                )
+                st.plotly_chart(fig_sit, use_container_width=True)
+
+        # --- Gráfico Top 10 Razões Sociais ---
         df_rs = df_filt.groupby('raz_social', as_index=False)['valor_solicitado'].sum()
         df_rs = df_rs.sort_values('valor_solicitado', ascending=False).head(10)
-        fig3 = px.bar(df_rs, x='raz_social', y='valor_solicitado', color='valor_solicitado',
-                      title="Top 10 – Razão Social")
-        st.plotly_chart(fig3, use_container_width=True)
+        fig_rs = px.bar(df_rs, x='raz_social', y='valor_solicitado', color='valor_solicitado',
+                        title="Top 10 – Razão Social")
+        st.plotly_chart(fig_rs, use_container_width=True)
 
-        # Gráfico 4: Evolução Mensal
+        # --- Evolução Mensal ---
         if 'mês_repasse' in df_filt.columns:
-            df_mes = df_filt.groupby('mês_repasse', as_index=False)['valor_solicitado'].sum()
-            df_mes = df_mes.sort_values('mês_repasse')
-            fig4 = px.line(df_mes, x='mês_repasse', y='valor_solicitado', markers=True,
-                           title="Valor Solicitado por Mês de Repasse")
-            st.plotly_chart(fig4, use_container_width=True)
+            # Converter para datetime
+            df_filt['mês_repasse_dt'] = pd.to_datetime(df_filt['mês_repasse'], format='%m/%Y', errors='coerce')
+            df_mes = df_filt.groupby('mês_repasse_dt', as_index=False)['valor_solicitado'].sum()
+            df_mes = df_mes.sort_values('mês_repasse_dt')
 
-        # Gráfico 5: Progresso de Repasses
+            fig_mes = px.line(df_mes, x='mês_repasse_dt', y='valor_solicitado', markers=True,
+                              title="Valor Solicitado por Mês de Repasse")
+            st.plotly_chart(fig_mes, use_container_width=True)
+
+        # --- Progresso de Repasses ---
         efetuado = df_filt.loc[df_filt['situacao'] == 'Repasse Efetuado', 'valor_solicitado'].sum()
         aguardando = df_filt.loc[df_filt['situacao'] == 'Aguardando repasse', 'valor_solicitado'].sum()
         total_possivel = efetuado + aguardando
-        fig5 = go.Figure()
-        fig5.add_trace(go.Bar(x=['Total Possível'], y=[total_possivel],
-                              name='Total Possível (Efetuado + Aguardando)', marker_color='lightgray'))
-        fig5.add_trace(go.Bar(x=['Total Possível'], y=[efetuado],
-                              name='Efetuado', marker_color='green'))
-        fig5.update_layout(barmode='overlay', title="Comparativo: Efetuado vs Total Possível",
-                           yaxis_title="Valor (R$)")
-        st.plotly_chart(fig5, use_container_width=True)
+        fig_prog = go.Figure()
+        fig_prog.add_trace(go.Bar(x=['Total Possível'], y=[total_possivel],
+                                  name='Total Possível', marker_color='lightgray'))
+        fig_prog.add_trace(go.Bar(x=['Total Possível'], y=[efetuado],
+                                  name='Efetuado', marker_color='green'))
+        fig_prog.update_layout(barmode='overlay', title="Comparativo: Efetuado vs Total Possível",
+                               yaxis_title="Valor (R$)")
+        st.plotly_chart(fig_prog, use_container_width=True)
 
-        # Gráfico 6: Quantidade e Valor por Origem
+        # --- Quantidade e Valor por Origem ---
         if 'origem' in df_filt.columns:
             df_origem = df_filt.groupby('origem', as_index=False).agg(
-                quantidade=('origem', 'count'), soma_valor=('valor_solicitado', 'sum'))
-            fig6 = px.scatter(df_origem, x='origem', y='soma_valor', size='quantidade',
-                              color='origem', title="Origem: Quantidade e Valor Solicitado")
-            st.plotly_chart(fig6, use_container_width=True)
+                quantidade=('origem', 'count'),
+                soma_valor=('valor_solicitado', 'sum')
+            )
+            fig_origem = px.scatter(df_origem, x='origem', y='soma_valor', size='quantidade',
+                                    color='origem', title="Origem: Quantidade e Valor Solicitado")
+            st.plotly_chart(fig_origem, use_container_width=True)
+
     else:
         st.warning("⚠️ Nenhum dado disponível para os filtros selecionados.")
+
 
 # ======================================================
 # ABA 2 - Notas de Saída Indevidas Scanc
