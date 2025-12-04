@@ -166,6 +166,10 @@ with tab2:
         options=meses_options,
         default=["anotodo"]
     )
+    situacao_opcoes = sorted(df_expl['situacao'].dropna().unique())
+    situacao_sel = st.sidebar.multiselect(
+    "Selecione Situação:", options=situacao_opcoes, default=[]
+)
 
     df_filtered = comparacao_df.copy()
     if contribuintes:
