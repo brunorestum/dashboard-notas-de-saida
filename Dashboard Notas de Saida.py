@@ -41,6 +41,10 @@ with tab1:
     periodos_sel = st.sidebar.multiselect(
         "Selecione Período(s):", options=periodos_opcoes, default=["anotodo"]
     )
+    situacao_opcoes = sorted(df_expl['situacao'].dropna().unique())
+    situacao_sel = st.sidebar.multiselect(
+    "Selecione Situação:", options=situacao_opcoes, default=[]
+    )
 
     # --- Aplicar filtros ---
     df_filt = df_expl.copy()
@@ -166,10 +170,6 @@ with tab2:
         options=meses_options,
         default=["anotodo"]
     )
-    situacao_opcoes = sorted(df_expl['situacao'].dropna().unique())
-    situacao_sel = st.sidebar.multiselect(
-    "Selecione Situação:", options=situacao_opcoes, default=[]
-)
 
     df_filtered = comparacao_df.copy()
     if contribuintes:
