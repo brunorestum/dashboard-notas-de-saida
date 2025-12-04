@@ -43,7 +43,7 @@ with tab1:
     )
     situacao_opcoes = sorted(df_expl['situacao'].dropna().unique())
     situacao_sel = st.sidebar.multiselect(
-    "Selecione Situação:", options=situacao_opcoes, default=[]
+        "Selecione Situação:", options=situacao_opcoes, default=[]
     )
 
     # --- Aplicar filtros ---
@@ -52,6 +52,8 @@ with tab1:
         df_filt = df_filt[df_filt['raz_social'].isin(razao_social_sel)]
     if "anotodo" not in periodos_sel:
         df_filt = df_filt[df_filt['periodo'].isin(periodos_sel)]
+    if situacao_sel:
+        df_filt = df_filt[df_filt['situacao'].isin(situacao_sel)]
 
     # --- Garantir valor numérico ---
     df_filt['valor_solicitado'] = pd.to_numeric(df_filt['valor_solicitado'], errors='coerce').fillna(0)
