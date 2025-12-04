@@ -21,7 +21,7 @@ with tab1:
     st.markdown("Use os filtros abaixo para segmentar os dados.")
 
     # --- Leitura do Excel ---
-    url1 = "https://raw.githubusercontent.com/brunorestum/dashboard-notas-de-saida/db9f05856a0c9aa08722a5027ee34ad67f87af56/resultado_notificacao.xlsx"
+    url1 = "https://github.com/brunorestum/dashboard-notas-de-saida/raw/5700b7f640e2c345a2e1e06b96bf73a1dc2f72e0/resultado_notificacao.xlsx"
     df = pd.read_excel(url1, engine="openpyxl")
     df.columns = [c.strip().lower() for c in df.columns]
 
