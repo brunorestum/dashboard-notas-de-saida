@@ -110,34 +110,6 @@ with tab1:
                                     color='origem', title="Origem: Quantidade e Valor Solicitado")
             st.plotly_chart(fig_origem, use_container_width=True)
 
-        # --- Economia Total ---
-        num_notificacoes = int(df_filt.shape[0])
-        horas_por_notificacao = 16
-        custo_hora = 173
-        horas_total = num_notificacoes * horas_por_notificacao
-        valor_economizado = horas_total * custo_hora
-
-        st.subheader("💰 Economia Total Estimada com Notificações")
-        st.markdown(f"- Total de Notificações Processadas: **{num_notificacoes}**")
-        st.markdown(f"- Horas Totais Economizadas: **{horas_total} h**")
-        st.markdown(f"- Valor Economizado Estimado: **R$ {valor_economizado:,.2f}**")
-
-        # --- Gauge Circular para Valor Economizado ---
-        import plotly.graph_objects as go
-        fig_gauge = go.Figure(go.Indicator(
-            mode="gauge+number",
-            value=valor_economizado,
-            number={'prefix': "R$ ", 'valueformat': ",.0f"},
-            title={'text': "Valor Economizado para Instituição"},
-            gauge={'axis': {'range': [0, max(valor_economizado*1.2, 100000)]},
-                   'bar': {'color': "green"},
-                   'steps': [
-                       {'range': [0, valor_economizado*0.5], 'color': "lightgreen"},
-                       {'range': [valor_economizado*0.5, valor_economizado], 'color': "green"}]
-                  }
-        ))
-        st.plotly_chart(fig_gauge, use_container_width=True)
-
     else:
         st.warning("⚠️ Nenhum dado disponível para os filtros selecionados.")
 
