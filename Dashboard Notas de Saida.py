@@ -98,7 +98,7 @@ with tab1:
             df_mes = df_mes.sort_values('mês_repasse_dt')
             df_mes['mes_ano'] = df_mes['mês_repasse_dt'].dt.strftime('%m/%Y')
             fig_mes = px.line(df_mes, x='mes_ano', y='valor_solicitado', markers=True,
-                              title="Valor Solicitado por Mês de Repasse")
+                              title="Evolução Mensal de Repasse Efetuado")
             st.plotly_chart(fig_mes, use_container_width=True)
 
         # --- Quantidade e Valor por Origem ---
